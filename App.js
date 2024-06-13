@@ -1,102 +1,114 @@
-import React, { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Home from './src/screens/home';
-import AddNote from './src/screens/addNote';
-import EditNote from './src/screens/editNote';
+import React, { useState } from "react"
+import Home from "./src/screens/home"
+import AddNote from "./src/screens/addNote"
+import EditNote from "./src/screens/editNote"
 
-const STORAGE_KEY = '@noteList';
-
-const CurrentPageWidget = ({ currentPage, noteList, setCurrentPage, addNote, editNote, deleteNote, setNoteToEdit, noteToEdit }) => {
+const CurrentPageWidget = ({
+  currentPage,
+  noteList,
+  setCurrentPage,
+  addNote,
+  currentNote,
+  setCurrentNote,
+  updateNote,
+  deleteNote
+}) => {
   switch (currentPage) {
     case 'home':
       return (
-        <Home
+        <Home 
           noteList={noteList}
           setCurrentPage={setCurrentPage}
-          setNoteToEdit={setNoteToEdit}
+          setCurrentNote={setCurrentNote}
           deleteNote={deleteNote}
         />
-      );
+      )
     case 'add':
-      return <AddNote setCurrentPage={setCurrentPage} addNote={addNote} />;
+      return (
+        <AddNote 
+          setCurrentPage={setCurrentPage} 
+          addNote={addNote}
+        />
+      )
     case 'edit':
-      return <EditNote setCurrentPage={setCurrentPage} editNote={editNote} noteToEdit={noteToEdit} />;
+      return (
+        <EditNote 
+          setCurrentPage={setCurrentPage}
+          currentNote={currentNote}
+          updateNote={updateNote}
+        />
+      )
     default:
-      return <Home />;
+      <Home />
+      break;
   }
-};
+}
+
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState('home');
-  const [noteList, setNoteList] = useState([]);
-  const [noteToEdit, setNoteToEdit] = useState(null);
-
-  useEffect(() => {
-    loadNotes();
-  }, []);
-
-  useEffect(() => {
-    saveNotes(noteList);
-  }, [noteList]);
-
-  const saveNotes = async (notes) => {
-    try {
-      const jsonValue = JSON.stringify(notes);
-      await AsyncStorage.setItem(STORAGE_KEY, jsonValue);
-    } catch (e) {
-      console.error('Failed to save notes:', e);
-    }
-  };
-
-  const loadNotes = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem(STORAGE_KEY);
-      if (jsonValue != null) {
-        setNoteList(JSON.parse(jsonValue));
-      }
-    } catch (e) {
-      console.error('Failed to load notes:', e);
-    }
-  };
-
+  const [currentPage, setCurrentPage] = useState('home')
+  const [noteList, setNoteList] = useState([
+    {
+      id: 1,
+      title: "Note Pertama",
+      desc: "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
+    },
+    {
+      id: 2,
+      title: "Note Kedua",
+      desc: "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
+    },
+  ])
+  const [currentNote, setCurrentNote] = useState([])
+  
   const addNote = (title, desc) => {
-    const id = noteList.length > 0 ? noteList[noteList.length - 1].id + 1 : 1;
+    const id = noteList.length > 0 ? noteList[noteList.length - 1].id + 1 : 1
+  
     setNoteList([
       ...noteList,
       {
         id,
-        title,
-        desc,
+        title: title,
+        desc: desc,
       },
-    ]);
-    setCurrentPage('home');
-  };
+    ])
+  }
 
-  const editNote = (id, title, desc) => {
-    setNoteList(
-      noteList.map(note =>
-        note.id === id ? { ...note, title, desc } : note
-      )
-    );
-    setCurrentPage('home');
-  };
+  const updateNote = (id, title, desc) => {
+    const updateNote = noteList.map(note => {
+      if (note.id === id) {
+        return {
+          id,
+          title,
+          desc
+        }
+      }
+      return note
+    })
+
+    setNoteList(updateNote)
+  }
 
   const deleteNote = (id) => {
-    setNoteList(noteList.filter(note => note.id !== id));
-  };
+    const deleteNote = noteList.filter(note => {
+      return note.id !== id
+    })
 
+    setNoteList(deleteNote)
+  }
+  
   return (
     <CurrentPageWidget
       currentPage={currentPage}
       setCurrentPage={setCurrentPage}
       noteList={noteList}
       addNote={addNote}
-      editNote={editNote}
+      currentNote={currentNote}
+      setCurrentNote={setCurrentNote}
+      updateNote={updateNote}
       deleteNote={deleteNote}
-      setNoteToEdit={setNoteToEdit}
-      noteToEdit={noteToEdit}
     />
-  );
-};
+  )
+}
 
-export default App;
+export default App
